@@ -1,0 +1,137 @@
+-----------------------------------------------------------------------------------------------------------------------
+01/19/23: Attempting to deploy JavaReducer on a new laptop that doesn't already have Required
+dependencies, this will serve as a log to verify the changes to a system that are required to
+run the program, as the original system went through numerous trial and error changes and the
+exact minimum of changes required isn't known at this time.
+
+Maven is required to be installed, this is required not only for testing Maven projects, but
+because this main project also uses Maven.
+
+                    [>> INSTALL MAVEN <<]
+
+01/20/23: For some reason, the Maven execution and compiles are running as expected, but the
+tests never fail, even when incredibly simple and they should. Maven logging indicates that
+it is skipping some non-existing directories (which DO exist, AT the indicated location) and
+that the tests pass...
+
+01/31/23: Debugging the program and stepping through the execution phase statement by
+statement, the targeted program fails as expected. I had decreased the wait time for
+allowing potential infinite loops to occur from 5 seconds to 2, so there wouldn't be
+extended waiting for my presentation... It seems there was a problem with this waiting time
+and the way it is set up. 5 seconds divided into 500 checks = a frequency check of 0.01
+seconds. 2 seconds divided into 500 checks = a frequency check of 0.004 seconds... This is
+an unreasonbly short duration to check, but the result is returned almost immediately and
+well before the full 2 seconds- yet a pass is returned before the fail is received for
+some reason. I changed the wait steps to be a size proportional to the total wait time,
+this works and seems an overall improvement anyway. Maven is working.
+
+Testing ANT. ANT requires a build file that has both compile and test targets, it also
+requires the junit.jar to be provided and used as part of the existing project structure.
+ANT is working as expected.
+
+Testing GRADLE. GRADLE (of course) requires the installation of GRADLE. Furthermore, the
+directory of WHERE GRADLE IS INSTALLED needs to be passed as a parameter for the project(s)
+from this main program. Gradle works.
+
+                    [>> INSTALL GRADLE <<]
+                    [>> SETUP GRADLE INSTALL DIRECTORY, WITHIN PROJECT(S) <<]
+
+Everything works with IntelliJ, still can't get the main program to run on Visual Studio
+Code...
+
+02/03/23: Changed "switchentry" in SimplifiedTree into a pattern variable.
+
+02/09/23:
+int a = 1;
+a += 1;
+a += 1;
+assertTrue(a == 2);
+
+
+int b = 0;
+b += 1;
+b += 1;
+assertTrue(a == 1);
+
+How applicable, how accurate. Precision, recall.
+
+02/21/23: Have everything working on Windows, Maven needs a MAVEN_HOME lookup on Windows but this breaks the MAVEN
+implementation on Linux. On linux the invoker executable and invoker maven home are NULL... but it works anyway. If
+these are set to MAVEN_HOME, as they are for Windows, Maven will not work. I'm not sure why it works on Linux when
+the location dependencies for Maven aren't located, but for now I just check the Operating System and if it is
+Windows, then I set the MAVEN_HOME for the invoker.
+-----------------------------------------------------------------------------------------------------------------------
+
+// TIME (Maven Project) (Bug 1)
+Seems like it is from 2013 and targeted for Java version 8 and older versions of several plugins.
+Would not compile to determine where the problematic files to be reduced even were. Had to change
+the targeted source/target file versions in the pom.xml from 1.5 to 17. This 1.5 to 17 had to be
+changed in the Java Compiler setting for the project, for the byte code. Additionally, the reducer
+would not work until I swapped out the <build> segment of the pom.xml with one using updated
+versions of the "maven-compiler-plugin" / "maven-surefire=plugin" and "maven-failsafe-plugin".
+Attempting to use an alternate pom.xml file failed because of required configurations and
+dependencies defined in the original pom.xml. With <build> being a standalone tag and also
+something that can be defined nested within other targets, attempting to swap or update this
+tag automatically would be tricky.
+
+In the "TestDateTimeFormat" class, there are 3 separate errors. While there is at least 1 other
+method that errors out, the contents of the method being targeted will be completely removed
+because the additional method(s) will still cause the test to error out.
+
+// TIME (Maven) (Bug 27)
+Replaced the <build> component of the POM, compile errors out because of Source/Target being set to option 6.
+Changed "Build,Execution,Deployment>Compiler>Java Compiler: Target bytecode version from 1.5 to 17"
+Added:
+<configuration>
+  <source>1.8</source>
+  <target>1.8</target>
+</configuration>
+below the "maven-compiler-plugin" version. Successfully compiled- added the config to my main pom.xml file. Project
+would then compile, but fail to run tests. The code is trying to access files that do not exist in the project...
+
+// TIME (Maven) (Bug 2)
+Replaced the <build> section, compiled fine, same missing file as with bug 27.
+
+
+// MOCKITO (Gradle Project?) (Bug 1)
+[Gradle Sync issues] "This version of Android Studio requires projects to use Gradle 4.8.1 or
+newer. This project is using Gradle 2.2.1."
+Changing sourceCompatibility and targetCompatibility from 1.5 to 17 in
+Changed gradleVersion from '2.4' to '7.0.2' in "build.gradle"
+in gradle/wrapper/gradle-wrapper.properties: changed,
+distributionUrl=file\:/home/_tynrael_/Documents/Weber/Graduate/Work/Defects4J/defects4j/framework/lib/build_systems/gradle/dists/gradle-2.2.1-all.zip
+to
+distributionUrl=file\:/home/_tynrael_/Documents/Weber/Graduate/Work/Defects4J/defects4j/framework/lib/build_systems/gradle/dists/gradle-7.0.2-all.zip
+
+Still can't get this to compile. Trying to "gradle compile" vs gradlew, doesn't work. Added "gradle-7.3-all.zip" to the
+defects4j/framework/lib/build_systems/gradle/dists/ directory and attempted to sync, made it further but then had
+several errors about packages not existing and symbols that can't be found.
+
+// MOCKITO (Bug 38)
+Can't even get IntelliJ to load this project
+
+// Lang (Bug 1)
+Errors out with compile, changing:
+<maven.compile.source>1.6</maven.compile.source>
+<maven.compile.target>1.6</maven.compile.target>
+    to
+<maven.compile.source>1.8</maven.compile.source>
+<maven.compile.target>1.8</maven.compile.target>
+Test succeeded, 1 error, there are test failures. Target class DateUtilsTest has several failing methods, but also
+has errors that the JavaReducer can't distinguish between test failures for.
+
+Googling the errors, the problem is related to versions of Lang3 having problems, this project happens to be Lang3...
+so can't update a dependency to be a better version! Changing this check to simply return true:
+Added: JAVA_18(18.0f, "18") to JavaVersion enum in JavaVersion.java and
+else if ("18".equals(nom)) {
+            return JAVA_18;
+To JavaVersion get()
+
+This changes what failed and what errored out to be completely different, all new classses. The classes with failing
+methods, also still have other errors so they can't be reduced.
+
+
+
+
+
+// Created by Brandon Wilber, 07/2022

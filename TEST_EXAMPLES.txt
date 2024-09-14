@@ -1,0 +1,266 @@
+// Diagram of how ddmin would function for reduction
+0   0   0   0   0   0   0   0   0   0   0   0   // Break into 2 pieces
+                        0   0   0   0   0   0   // Test second piece
+0   0   0   0   0   0                           // Test first piece
+                                    0   0   0   // Break into 4 pieces, try 4th piece
+                        0   0   0               // Try third piece
+            0   0   0                           // Try second piece
+0   0   0                                       // Try first piece
+0   0   0   0   0   0   0   0   0               // Try compliment of 4th piece
+0   0   0   0   0   0               0   0   0   // Try compliment of 3rd piece
+0   0   0               0   0   0   0   0   0   // Try compliment of 2nd piece
+            0   0   0   0   0   0   0   0   0   // Try compliment of 1st piece
+                                            0   // Break into 12 pieces, test 12th
+                                        0       // Test 11th
+                                    0           // Test 10th
+                                0               // Test 9th
+                            0                   // Test 8th
+                        0                       // Test 7th
+                    0                           // Test 6th
+                0                               // Test 5th
+            0                                   // Test 4th
+        0                                       // Test 3rd
+    0                                           // Test 2nd
+0                                               // Test 1st
+
+// The algorithm would then do 12x compliments, but we are at brute force equivalent now and any further work would
+    not be needed. The use of compliments and attempting to check clusters of statements within varied locations of
+    the class may be helpful for limiting the number of checks required to isolate the failing test methods themselves,
+    but isn't as useful for reduction of the content within those methods
+
+// Diagram of new WIP algorithm processing workflow
+0   0   0   0   0   0   0   0   0   0   0   0   // Break into 2 pieces
+                        0   0   0   0   0   0       // Test second half, break in 2
+                                    0   0   0           // Test second half, break in 2
+                                            0               // Test second half
+                                    0   0                   // Test first half, break in 2
+                                        0                       // Test second half
+                                    0                           // Test first half
+                        0   0   0                       // Test first half, break in 2
+                                0                           // Test second half
+                        0   0                               // Test first half, break in 2
+                            0                                   // Test second half
+                        0                                       // Test first half
+0   0   0   0   0   0                               // Test first half, break in 2
+            0   0   0                                   // Test second half, break in 2
+                    0                                       // Test second half
+            0   0                                           // Test first half, break in 2
+                0                                               // Test second half
+            0                                                   // Test first half
+0   0   0                                               // Test first half, break in 2
+        0                                                   // Test second half
+0   0                                                       // Test first half, break in 2
+    0                                                           // Test second half
+0                                                               // Test first half
+-----------------------------------------------------------------------------------------------
+// Worst Case: 24 Steps (2n) | Bruce Force = 12 (n). Essentially the same worst case as DDMIN,
+    with the potential for additional improvement, never attempting to remove an early segment
+    before everything after it has already been attempted to be removed, and never needing to
+    check anything twice specifically. With DDMIN, a later element being removed as a cluster
+    could free up an earlier single statement, basically meaning that with DDMIN every statement
+    needs to be checked individually at the end from back to front.
+
+
+// MAVEN INFO LOGGER FILE LOCATION:
+    opt/maven/conf/logging/simplelogger.properties
+    etc/maven/logging/simplelogger.properties
+
+// Several hanging dependencies on items that aren't required, verifies items are removed from the end all the way
+    to the beginning, also has 7 items to confirm the extra item from non-even groups (2x3) will be checked
+public void simpleTest01() {
+    System.out.println("Hello World"); // Fluff statement #1
+    int a = 10; // Fluff dependency #1
+    int x = 5; // Required dependency #1
+    System.out.println("Hello World"); // Fluff statement #2
+    int b = a + 1; // Fluff dependency #2
+    assertTrue(x + 1 == 7); // Required FAIL STATEMENT
+    int c = b + 1; // Hanging fluff, not a dependency
+}
+
+// A test with 2 if statements, the first should be preserved while extra items within it are removed, the
+    second if statement is not required and should be removed entirely
+public void simpleTest01() {
+    int a = 1;
+    int b = a + 1;
+
+    if (a == 1) {
+        System.out.println("To be removed #1");
+        int c = a + 1;
+
+        if (c == 2) {
+            assertTrue(c + 1 == 4);
+            System.out.println("To be removed #2");
+        }
+    } else {
+        System.out.println("To be removed #3");
+    }
+
+    if (a == 1) {
+        System.out.println("To be removed #4");
+    }
+}
+
+// Should only remove the print statements, makes use of the ELSE IF statement, which varies slightly in the
+    JavaParser AST format
+public void simpleTest01() {
+    int a = 1;
+
+    if (true) {
+        System.out.println("Fluff");
+        a++;
+    } else if (false) {
+        System.out.println("Fluff 2");
+        System.out.println("Fluff 3");
+    } else {
+        System.out.println("Fluff 4");
+    }
+
+    a++;
+    assertFalse(a > 2 && a < 4);
+}
+
+// Nested statements combining IF and ELSE IF, with dependencies that are nested. Should remove all print statements
+public void simpleTest01() {
+    int a = 1;
+
+    if (true) {
+        System.out.println("Depth 2, Segment #1, Fluff #1");
+
+        if (a == 1) {
+            System.out.println("Depth 3, Segment #1, Fluff #1");
+            a++;
+
+            if (true) {
+                System.out.println("Depth 4, Segment #1, Fluff #1");
+            }
+        } else if (a == 2) {
+            System.out.println("Depth 3, Segment #2, Fluff #1");
+        }
+    } else if (false) {
+        System.out.println("Depth 2, Segment #2, Fluff #1");
+    } else {
+        System.out.println("Depth 2, Segment #3, Fluff #1");
+    }
+
+    assertFalse(a > 1 && a < 3);
+}
+
+// Lambda expression test case
+public void simpleTest01() {
+    ArrayList<Integer> values = new ArrayList<Integer>();
+    values.add(0);
+    values.add(1);
+    values.add(2);
+    values.forEach((x) -> {
+        System.out.println("stuff");
+        assertTrue(false);
+    });
+}
+
+// Examples of all 6 types of nested statement variants. Each nested statement type has elements that can be reduced,
+    but also contain elements required for the fail condition, so all 6 types of statements are preserved in the end
+public void simpleTest01() {
+        int a = 1;
+        int[] array = {1, 2, 3, 4, 5};
+
+        while (a < 3) {
+            a++;
+            System.out.println("Stuff");
+        }
+
+        do {
+            a++;
+            System.out.println("Stuff");
+        } while (a > 3 && a < 6);
+
+        for (int value : array) {
+            System.out.println("Stuff");
+            a++;
+        }
+
+        for (int i = 0; i < 3; i++) {
+            a++;
+            System.out.println("Stuff");
+        }
+
+        switch (array[0]) {
+            case 1:
+                {
+                    a++;
+                    System.out.println("Stuff");
+                    break;
+                }
+            case 2:
+                {
+                    System.out.println("Stuff");
+                    break;
+                }
+            case 3:
+                {
+                    System.out.println("Stuff");
+                    break;
+                }
+            case 4:
+                {
+                    System.out.println("Stuff");
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
+        if (true) {
+            System.out.println("Stuff");
+            a++;
+        } else if (false) {
+            System.out.println("Stuff");
+        } else {
+            System.out.println("Stuff");
+        }
+
+        System.out.println("Hold");
+        assertFalse(a > 15 && a < 17);
+    }
+
+// Example for testing introduction of block statements, in cases where there are single statements without them
+public void simpleTest01() {
+        int a = 0;
+        if (true)
+            a++;
+        else if (false)
+            System.out.println("Stuff1");
+        else
+            System.out.println("Stuff2");
+
+        assertFalse(a > 0 && a < 2);
+    }
+
+// Example test for Switch statements where the body of each case is not a Block Statement
+public void simpleTest01() {
+        int a = 0;
+        int[] array = {1, 2, 3, 4, 5};
+
+        switch (array[0]) {
+            case 1:
+                a++;
+                System.out.println("Stuff");
+                break;
+            case 2:
+                System.out.println("Stuff");
+                break;
+            case 3:
+                System.out.println("Stuff");
+                break;
+            case 4:
+                System.out.println("Stuff");
+                break;
+            default:
+                break;
+        }
+
+        assertFalse(a > 0 && a < 2);
+    }
+
+// Created by Brandon Wilber, 06/2022

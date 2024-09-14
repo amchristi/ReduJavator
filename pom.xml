@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>Scratch</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <dependencies>
+<!-- REQUIRED FOR THE REDUCER ................................-->
+        <dependency>
+            <groupId>com.github.javaparser</groupId>
+            <artifactId>javaparser-core</artifactId>
+            <version>3.15.22</version>
+        </dependency>
+<!--..........................................................-->
+<!-- REQUIRED MAVEN REDUCTION ................................-->
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-invoker</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+<!--..........................................................-->
+<!-- REQUIRED ANT REDUCTION ..................................-->
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.10.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-junit</artifactId>
+            <version>1.10.12</version>
+        </dependency>
+<!--..........................................................-->
+<!-- REQUIRED GRADLE REDUCTION ...............................-->
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-junit4</artifactId>
+            <version>1.10.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-tooling-api</artifactId>
+            <version>7.3-20210825160000+0000</version>
+        </dependency>
+
+        <!-- This is NOT needed for Gradle reduction, only to view the execution logging in the console -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+<!--..........................................................-->
+    </dependencies>
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+</project>
+
+<!--Created by Brandon Wilber, 05/2022-->
